@@ -1,5 +1,7 @@
 import pygame
 import os
+pygame.font.init()
+pygame.mixer.init()
 
 WIDTH, HEIGHT = 900, 500
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -17,6 +19,12 @@ SP1_HIT = pygame.USEREVENT + 1
 SP2_HIT = pygame.USEREVENT + 2
 SP1_COLOR = (255, 255, 0)
 SP2_COLOR = (255, 0, 0)
+
+HEALTH_FONT = pygame.font.SysFont('comicsans', 40)
+WINNER_FONT = pygame.font.SysFont('comicsans', 100)
+
+BULLET_HIT_SOUND = pygame.mixer.Sound(os.path.join('Assets', 'Shot.wav'))
+BULLET_FIRE_SOUND = pygame.mixer.Sound(os.path.join('Assets', 'Fire.wav'))
 
 SPACE = pygame.image.load(os.path.join('Assets', 'space.jpg'))
 YELLOW_SPACESHIP = pygame.image.load(os.path.join('Assets', 'yellowspaceship.png'))
@@ -68,16 +76,30 @@ def handle_bullets(sp1_bullets, sp2_bullets, sp1, sp2):
             sp2_bullets.remove(bullet)
 
 
-def draw_window(sp1, sp2, sp1_bullets, sp2_bullets):
+def draw_window(sp1, sp2, sp1_bullets, sp2_bullets, sp1_health, sp2_health):
     WIN.blit(SPACE, (0, 0))
     pygame.draw.rect(WIN, BLACK, BORDER)
+
+    sp1_health_text = HEALTH_FONT.render("Health: " + str(sp1_health), 1, WHITE)
+    sp2_health_text = HEALTH_FONT.render("Health: " + str(sp2_health), 1, WHITE)
+
+    WIN.blit(sp1_health_text, (10, 10))
+    WIN.blit(sp2_health_text, (WIDTH - sp2_health_text.get_width() - 10, 10))
+
     WIN.blit(YELLOW_SPACESHIP, (sp1.x, sp1.y))
     WIN.blit(RED_SPACESHIP, (sp2.x, sp2.y))
+
     for bullet in sp1_bullets:
         pygame.draw.rect(WIN, SP1_COLOR, bullet)
     for bullet in sp2_bullets:
         pygame.draw.rect(WIN, SP2_COLOR, bullet)
     pygame.display.update()
+
+def draw_winner(text):
+    draw_text = WINNER_FONT.render(text, 1, WHITE)
+    WIN.blit(draw_text, (WIDTH // 2 - draw_text.get_width() // 2, HEIGHT // 2 - draw_text.get_height() // 2))
+    pygame.display.update()
+    pygame.time.delay(5000)
 
 def main():
     clock = pygame.time.Clock()
@@ -88,29 +110,51 @@ def main():
     sp1_bullets = []
     sp2_bullets = []
 
+    sp1_health = 10
+    sp2_health = 10
+
     while run:
         clock.tick(FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+                pygame.quit()
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LCTRL and len(sp1_bullets) < MAX_BULLETS:
                     bullet = pygame.Rect(sp1.x + sp1.width, sp1.y + sp1.height // 2 - 2, 10, 5)
                     sp1_bullets.append(bullet)
+                    BULLET_FIRE_SOUND.play()
 
                 if event.key == pygame.K_RCTRL and len(sp2_bullets) < MAX_BULLETS:
                     bullet = pygame.Rect(sp2.x, sp2.y + sp2.height // 2 - 2, 10, 5)
                     sp2_bullets.append(bullet)
+                    BULLET_FIRE_SOUND.play()
+
+            if event.type == SP1_HIT:
+                sp1_health = sp1_health - 1
+                BULLET_HIT_SOUND.play()
+            if event.type == SP2_HIT:
+                sp2_health = sp2_health - 1
+                BULLET_HIT_SOUND.play()
+
+        winner_text = ""
+        if sp1_health <= 0:
+            winner_text = "Player 1 wins!"
+        if sp2_health <= 0:
+            winner_text = "Player 2 wins!"
+        if winner_text != "":
+            draw_winner(winner_text)
+            break
 
         keys_pressed = pygame.key.get_pressed()
         spship1_handle_movement(keys_pressed, sp1)
         spship2_handle_movement(keys_pressed, sp2)
         handle_bullets(sp1_bullets, sp2_bullets, sp1, sp2)
 
-        draw_window(sp1, sp2, sp1_bullets, sp2_bullets)
+        draw_window(sp1, sp2, sp1_bullets, sp2_bullets, sp1_health, sp2_health)
 
-    pygame.quit()
+    main()
 
 if __name__ == "__main__":
     main()
