@@ -8,6 +8,9 @@ WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Space Battle Duo")
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+GREEN = (0, 128, 0)
+AMBER = (255, 255, 0)
+RED = (255, 0, 0)
 FPS = 60
 MAX_BULLETS = 3
 SPACESHIP_WIDTH = 65
@@ -22,6 +25,7 @@ SP2_COLOR = (255, 0, 0)
 
 HEALTH_FONT = pygame.font.SysFont('comicsans', 40)
 WINNER_FONT = pygame.font.SysFont('comicsans', 100)
+INTRO_FONT = pygame.font.SysFont('freesansbold.ttf',115)
 
 BULLET_HIT_SOUND = pygame.mixer.Sound(os.path.join('Assets', 'Shot.wav'))
 BULLET_FIRE_SOUND = pygame.mixer.Sound(os.path.join('Assets', 'Fire.wav'))
@@ -78,6 +82,20 @@ def handle_bullets(sp1_bullets, sp2_bullets, sp1, sp2):
 
 def draw_window(sp1, sp2, sp1_bullets, sp2_bullets, sp1_health, sp2_health):
     WIN.blit(SPACE, (0, 0))
+    if sp1_health < 7 and sp1_health > 4:
+        SCORE_COLOR_SP1 = AMBER
+    elif sp1_health <= 4:
+        SCORE_COLOR_SP1 = RED
+    else:
+        SCORE_COLOR_SP1 = GREEN
+    if sp2_health < 7 and sp2_health > 4:
+        SCORE_COLOR_SP2 = AMBER
+    elif sp2_health <= 4:
+        SCORE_COLOR_SP2 = RED
+    else:
+        SCORE_COLOR_SP2 = GREEN
+    pygame.draw.rect(WIN, SCORE_COLOR_SP1, (0, 0, sp1_health * 45, 8))
+    pygame.draw.rect(WIN, SCORE_COLOR_SP2, (WIDTH - sp2_health * 45, 0, sp2_health * 45, 8))
     pygame.draw.rect(WIN, BLACK, BORDER)
 
     sp1_health_text = HEALTH_FONT.render("Health: " + str(sp1_health), 1, WHITE)
@@ -100,6 +118,26 @@ def draw_winner(text):
     WIN.blit(draw_text, (WIDTH // 2 - draw_text.get_width() // 2, HEIGHT // 2 - draw_text.get_height() // 2))
     pygame.display.update()
     pygame.time.delay(5000)
+
+def game_intro():
+
+    intro = True
+
+    while intro:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+        WIN.fill(WHITE)
+        draw_text = INTRO_FONT.render("SPACE SHIP DUEL", 1, BLACK)
+        WIN.blit(draw_text, (WIDTH // 2 - draw_text.get_width() // 2, HEIGHT // 2 - draw_text.get_height() // 2))
+
+        pygame.draw.rect(WIN, GREEN, (150,450,100,50))
+        pygame.draw.rect(WIN, RED, (550,450,100,50))
+
+        pygame.display.update()
+        pygame.time.delay(5000)
 
 def main():
     clock = pygame.time.Clock()
@@ -140,9 +178,9 @@ def main():
 
         winner_text = ""
         if sp1_health <= 0:
-            winner_text = "Player 1 wins!"
-        if sp2_health <= 0:
             winner_text = "Player 2 wins!"
+        if sp2_health <= 0:
+            winner_text = "Player 1 wins!"
         if winner_text != "":
             draw_winner(winner_text)
             break
@@ -157,4 +195,5 @@ def main():
     main()
 
 if __name__ == "__main__":
+    game_intro()
     main()
