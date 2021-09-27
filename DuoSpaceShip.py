@@ -1,5 +1,7 @@
 import pygame
+import pygame_menu
 import os
+#from pygame_menu.widgets.selection.myselection import MySelection
 pygame.font.init()
 pygame.mixer.init()
 
@@ -22,6 +24,8 @@ SP1_HIT = pygame.USEREVENT + 1
 SP2_HIT = pygame.USEREVENT + 2
 SP1_COLOR = (255, 255, 0)
 SP2_COLOR = (255, 0, 0)
+PLAYER1 = "Jerin"
+PLAYER2 = "Computer"
 
 HEALTH_FONT = pygame.font.SysFont('comicsans', 40)
 WINNER_FONT = pygame.font.SysFont('comicsans', 100)
@@ -32,15 +36,13 @@ BULLET_FIRE_SOUND = pygame.mixer.Sound(os.path.join('Assets', 'Fire.wav'))
 
 SPACE = pygame.image.load(os.path.join('Assets', 'space.jpg'))
 YELLOW_SPACESHIP = pygame.image.load(os.path.join('Assets', 'yellowspaceship.png'))
-#BLUE_SPACESHIP = pygame.image.load(os.path.join('Assets', 'bluespaceship.png'))
-#GREEN_SPACESHIP = pygame.image.load(os.path.join('Assets', 'greenspaceship.png'))
+BLUE_SPACESHIP = pygame.image.load(os.path.join('Assets', 'bluespaceship.png'))
+GREEN_SPACESHIP = pygame.image.load(os.path.join('Assets', 'greenspaceship.png'))
 RED_SPACESHIP = pygame.image.load(os.path.join('Assets', 'redspaceship.png'))
 
 SPACE = pygame.transform.scale(SPACE, (WIDTH, HEIGHT))
-YELLOW_SPACESHIP = pygame.transform.rotate(pygame.transform.scale(YELLOW_SPACESHIP, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 270)
-#BLUE_SPACESHIP = pygame.transform.scale(BLUE_SPACESHIP, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT))
-#GREEN_SPACESHIP = pygame.transform.scale(GREEN_SPACESHIP, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT))
-RED_SPACESHIP = pygame.transform.rotate(pygame.transform.scale(RED_SPACESHIP, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 90)
+SPACESHIP1 = pygame.transform.rotate(pygame.transform.scale(RED_SPACESHIP, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 270)
+SPACESHIP2 = pygame.transform.rotate(pygame.transform.scale(GREEN_SPACESHIP, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 90)
 
 def spship1_handle_movement(keys_pressed, sp1):
     if keys_pressed[pygame.K_a] and sp1.x - VEL > 0:
@@ -98,14 +100,14 @@ def draw_window(sp1, sp2, sp1_bullets, sp2_bullets, sp1_health, sp2_health):
     pygame.draw.rect(WIN, SCORE_COLOR_SP2, (WIDTH - sp2_health * 45, 0, sp2_health * 45, 8))
     pygame.draw.rect(WIN, BLACK, BORDER)
 
-    sp1_health_text = HEALTH_FONT.render("Health: " + str(sp1_health), 1, WHITE)
-    sp2_health_text = HEALTH_FONT.render("Health: " + str(sp2_health), 1, WHITE)
+    sp1_health_text = HEALTH_FONT.render(PLAYER1 + " Health: " + str(sp1_health), 1, WHITE)
+    sp2_health_text = HEALTH_FONT.render(PLAYER2 + " Health: " + str(sp2_health), 1, WHITE)
 
     WIN.blit(sp1_health_text, (10, 10))
     WIN.blit(sp2_health_text, (WIDTH - sp2_health_text.get_width() - 10, 10))
 
-    WIN.blit(YELLOW_SPACESHIP, (sp1.x, sp1.y))
-    WIN.blit(RED_SPACESHIP, (sp2.x, sp2.y))
+    WIN.blit(SPACESHIP1, (sp1.x, sp1.y))
+    WIN.blit(SPACESHIP2, (sp2.x, sp2.y))
 
     for bullet in sp1_bullets:
         pygame.draw.rect(WIN, SP1_COLOR, bullet)
@@ -120,24 +122,16 @@ def draw_winner(text):
     pygame.time.delay(5000)
 
 def game_intro():
-
-    intro = True
-
-    while intro:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-
-        WIN.fill(WHITE)
-        draw_text = INTRO_FONT.render("SPACE SHIP DUEL", 1, BLACK)
-        WIN.blit(draw_text, (WIDTH // 2 - draw_text.get_width() // 2, HEIGHT // 2 - draw_text.get_height() // 2))
-
-        pygame.draw.rect(WIN, GREEN, (150,450,100,50))
-        pygame.draw.rect(WIN, RED, (550,450,100,50))
-
-        pygame.display.update()
-        pygame.time.delay(5000)
+    pygame.init()
+    surface = pygame.display.set_mode((900, 500))
+    menu = pygame_menu.Menu('Spaceship Battle', 900, 500, theme = pygame_menu.themes.THEME_DARK)
+    menu.add.text_input('Name: ', default = 'Jerin', onchange = set_name)
+    menu.add.selector('Difficulty: ', [('Hard', 1), ('Medium', 2), ('Easy', 3)], onchange = set_difficulty)
+    menu.add.selector('Battle Ship: ', [('Red', 1), ('Green', 2), ('Blue', 3), ('Yellow', 4)], onchange = set_battle_ship_p1)
+    menu.add.selector('Play Type: ', [('1 Player', 1), ('2 Players', 2)], onchange = set_play_type)
+    menu.add.button('Play', main)
+    menu.add.button('Quit', pygame_menu.events.EXIT)
+    menu.mainloop(surface)
 
 def main():
     clock = pygame.time.Clock()
@@ -178,9 +172,9 @@ def main():
 
         winner_text = ""
         if sp1_health <= 0:
-            winner_text = "Player 2 wins!"
+            winner_text = PLAYER2 + " wins!"
         if sp2_health <= 0:
-            winner_text = "Player 1 wins!"
+            winner_text = PLAYER1 + " wins!"
         if winner_text != "":
             draw_winner(winner_text)
             break
@@ -192,8 +186,66 @@ def main():
 
         draw_window(sp1, sp2, sp1_bullets, sp2_bullets, sp1_health, sp2_health)
 
-    main()
+    game_intro()
+
+def set_difficulty(value, difficulty):
+    # Do the job here !
+    pass
+
+def set_name(value):
+    global PLAYER1
+    PLAYER1 = value
+
+def set_name1(value):
+    global PLAYER2
+    PLAYER2 = value
+
+def set_play_type(value, players):
+    pygame.init()
+    surface1 = pygame.display.set_mode((900, 500))
+    menu = pygame_menu.Menu('Spaceship Battle', 900, 500, theme = pygame_menu.themes.THEME_DARK)
+    menu.add.text_input('Player 1: ', default = 'Jerin', onchange = set_name)
+    menu.add.selector('Battle Ship 1: ', [('Red', 1, 1), ('Green', 1, 2), ('Blue', 1, 3), ('Yellow', 1, 4)], onchange = set_battle_ship_p2)
+    menu.add.text_input('Player 2: ', default = 'Paul', onchange = set_name1)
+    menu.add.selector('Battle Ship 2: ', [('Green', 2, 1), ('Red', 2, 2), ('Blue', 2, 3), ('Yellow', 2, 4)], onchange = set_battle_ship_p2)
+    menu.add.button('Play', main)
+    menu.add.button('Back to Main Menu', game_intro)
+    menu.add.button('Quit', pygame_menu.events.EXIT)
+    menu.mainloop(surface1)
+
+def set_battle_ship_p1(value, ship_color):
+    global SPACESHIP1
+    if ship_color == 1:
+        SPACESHIP1 = RED_SPACESHIP
+    if ship_color == 2:
+        SPACESHIP1 = GREEN_SPACESHIP
+    if ship_color == 3:
+        SPACESHIP1 = BLUE_SPACESHIP
+    if ship_color == 4:
+        SPACESHIP1 = YELLOW_SPACESHIP
+    SPACESHIP1 = pygame.transform.rotate(pygame.transform.scale(SPACESHIP1, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 90)
+
+def set_battle_ship_p2(value, player, ship_color):
+    global SPACESHIP1, SPACESHIP2
+    if ship_color == 1 and player == 1:
+        SPACESHIP1 = RED_SPACESHIP
+    if ship_color == 2 and player == 1:
+        SPACESHIP1 = GREEN_SPACESHIP
+    if ship_color == 3 and player == 1:
+        SPACESHIP1 = BLUE_SPACESHIP
+    if ship_color == 4 and player == 1:
+        SPACESHIP1 = YELLOW_SPACESHIP
+    if ship_color == 1 and player == 2:
+        SPACESHIP2 = GREEN_SPACESHIP
+    if ship_color == 2 and player == 2:
+        SPACESHIP2 = RED_SPACESHIP
+    if ship_color == 3 and player == 2:
+        SPACESHIP2 = BLUE_SPACESHIP
+    if ship_color == 4 and player == 2:
+        SPACESHIP2 = YELLOW_SPACESHIP
+    SPACESHIP1 = pygame.transform.rotate(pygame.transform.scale(SPACESHIP1, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 90)
+    SPACESHIP2 = pygame.transform.rotate(pygame.transform.scale(SPACESHIP2, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 90)
 
 if __name__ == "__main__":
     game_intro()
-    main()
+    #main()
