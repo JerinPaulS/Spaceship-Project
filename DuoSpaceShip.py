@@ -41,8 +41,8 @@ GREEN_SPACESHIP = pygame.image.load(os.path.join('Assets', 'greenspaceship.png')
 RED_SPACESHIP = pygame.image.load(os.path.join('Assets', 'redspaceship.png'))
 
 SPACE = pygame.transform.scale(SPACE, (WIDTH, HEIGHT))
-SPACESHIP1 = pygame.transform.rotate(pygame.transform.scale(RED_SPACESHIP, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 270)
-SPACESHIP2 = pygame.transform.rotate(pygame.transform.scale(GREEN_SPACESHIP, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 90)
+SPACESHIP1 = pygame.transform.rotate(pygame.transform.scale(RED_SPACESHIP, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 0)
+SPACESHIP2 = pygame.transform.rotate(pygame.transform.scale(GREEN_SPACESHIP, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 0)
 
 def spship1_handle_movement(keys_pressed, sp1):
     if keys_pressed[pygame.K_a] and sp1.x - VEL > 0:
@@ -201,6 +201,7 @@ def set_name1(value):
     PLAYER2 = value
 
 def set_play_type(value, players):
+    global PLAYER2
     pygame.init()
     surface1 = pygame.display.set_mode((900, 500))
     menu = pygame_menu.Menu('Spaceship Battle', 900, 500, theme = pygame_menu.themes.THEME_DARK)
@@ -211,10 +212,11 @@ def set_play_type(value, players):
     menu.add.button('Play', main)
     menu.add.button('Back to Main Menu', game_intro)
     menu.add.button('Quit', pygame_menu.events.EXIT)
+    PLAYER2 = "Paul"
     menu.mainloop(surface1)
 
 def set_battle_ship_p1(value, ship_color):
-    global SPACESHIP1
+    global SPACESHIP1, SPACESHIP2
     if ship_color == 1:
         SPACESHIP1 = RED_SPACESHIP
     if ship_color == 2:
@@ -224,6 +226,7 @@ def set_battle_ship_p1(value, ship_color):
     if ship_color == 4:
         SPACESHIP1 = YELLOW_SPACESHIP
     SPACESHIP1 = pygame.transform.rotate(pygame.transform.scale(SPACESHIP1, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 90)
+    SPACESHIP2 = pygame.transform.rotate(pygame.transform.scale(GREEN_SPACESHIP, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 270)
 
 def set_battle_ship_p2(value, player, ship_color):
     global SPACESHIP1, SPACESHIP2
@@ -243,8 +246,10 @@ def set_battle_ship_p2(value, player, ship_color):
         SPACESHIP2 = BLUE_SPACESHIP
     if ship_color == 4 and player == 2:
         SPACESHIP2 = YELLOW_SPACESHIP
-    SPACESHIP1 = pygame.transform.rotate(pygame.transform.scale(SPACESHIP1, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 90)
-    SPACESHIP2 = pygame.transform.rotate(pygame.transform.scale(SPACESHIP2, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 90)
+    if player == 1:
+        SPACESHIP1 = pygame.transform.rotate(pygame.transform.scale(SPACESHIP1, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 270)
+    if player == 2:
+        SPACESHIP2 = pygame.transform.rotate(pygame.transform.scale(SPACESHIP2, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), 90)
 
 if __name__ == "__main__":
     game_intro()
